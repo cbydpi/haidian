@@ -73,7 +73,6 @@
           </p>
           <p><span>举办地点：</span>{{activityData.address}}</p>
           <p><span>嘉宾：</span>{{activityData.customer}}</p>
-          <p><span>主讲人：</span>{{activityData.speaker}}</p>
           <p><span>主讲人简介：</span><pre style="color: #fff;line-height: 4.5rem;">{{activityData.speakerInfo}}</pre></p>
           <p><span>内容简介：</span><pre style="color: #fff;line-height: 4.5rem;">{{activityData.content}}</pre></p>
       </div>
@@ -366,6 +365,9 @@
         <div class="swiper-slide full" v-if="imgPath.length > 0" v-for="(value, index) in imgPath">
           <img :src="value.url" />
         </div>
+				<div class="swiper-pagination"></div>
+				<div class="swiper-button-prev"></div>
+				<div class="swiper-button-next"></div>
       </div>
     </div>
     <div class="c_bg">

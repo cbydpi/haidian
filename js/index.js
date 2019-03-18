@@ -295,6 +295,13 @@ mui.ready(function() {
                           delay: self.delayTime,
                           disableOnInteraction: false
                         },
+						pagination: {
+						  el: '.swiper-pagination',
+						},
+						navigation: {
+						  nextEl: '.swiper-button-next',
+						  prevEl: '.swiper-button-prev',
+						},
                         onSlideChangeEnd: function(swiper) {
 
                         }
@@ -343,6 +350,13 @@ mui.ready(function() {
                   delay: self.delayTime,
                   disableOnInteraction: false
                 },
+				pagination: {
+				  el: '.swiper-pagination',
+				},
+				navigation: {
+				  nextEl: '.swiper-button-next',
+				  prevEl: '.swiper-button-prev',
+				},
                 onSlideChangeEnd: function(swiper) {
 
                 }
@@ -627,6 +641,13 @@ mui.ready(function() {
                   delay: self.delayTime,
                   disableOnInteraction: false
                 },
+				pagination: {
+				  el: '.swiper-pagination',
+				},
+				navigation: {
+				  nextEl: '.swiper-button-next',
+				  prevEl: '.swiper-button-prev',
+				},
                 onSlideChangeEnd: function(swiper) {
 
                 }
@@ -641,6 +662,13 @@ mui.ready(function() {
                   delay: self.delayTime,
                   disableOnInteraction: false
                 },
+				pagination: {
+				  el: '.swiper-pagination',
+				},
+				navigation: {
+				  nextEl: '.swiper-button-next',
+				  prevEl: '.swiper-button-prev',
+				},
                 onSlideChangeEnd: function(swiper) {
 
                 }
