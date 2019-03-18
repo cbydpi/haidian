@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title></title>
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="fonts/iconfont/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="css/swiper.min.css"/>
+    <script src="js/jquery.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/swiper.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/index.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+      //去掉loading
+      setTimeout(function() {
+        $('.ui-loader').remove()
+      }, 200)
+    </script>
+  </head>
+
+  <body>
+  <div id="app">
+    <!--浮动点-->
+    <div id="mov" style="background: rgba(230,230,230,.6);width: 5rem;height: 5rem;border-radius: 50%;position: absolute;z-index: 999;;top: 20%;right: 0;"
+      @touchstart="mouseDown(this,$event)" @touchmove="mouseMove($event)" @touchend="mouseUp($event)" @click="toggleButton()">
+      <div style="text-align:center;position: absolute;width: 15rem;line-height: 3rem;background: #fff;border-radius: 15px;right: 5rem;display: none;">
+        <div class="inline" @click="beginslide()">
+          <i class="iconfont icon-pic" style="font-size: 3rem;"></i>
+          <p>轮播</p>
+        </div>
+        <div class="inline" @click="StartInteractive()">
+          <i class="iconfont icon-chat" style="font-size: 3rem;"></i>
+          <p>咨询</p>
+        </div>
+        <div class="inline" @click="initialization()">
+          <i class="iconfont icon-lajitong" style="font-size: 4rem;"></i>
+          <p>清屏</p>
+        </div>
+        <div class="inline" @click="exitApp">
+          <i class="iconfont icon-exit" style="font-size: 3rem;"></i>
+          <p>退出</p>
+        </div>
+      </div>
+    </div>
+
+    <!--政策详情-->
+    <div id="policyInfo" v-if="showPolicyInfo">
+      <h3 class="close iconfont icon-close" @click="closePolicyInfo()" style="font-size:5rem;color: #fff;"></h3>
+      <div style="position: absolute;top: 10%;width: 90%;max-height: 75%;overflow: auto;padding: 5% 5%;background: rgba(255,255,255,.2);border-radius: 1rem;border: solid 1px #d759f0;">
+        <h3 style="color: #d759f0;">{{policyInfo.name}}</h3>
+        <div 
+          v-for="(value, index) in policyInfo.contentList" 
+          v-if="value.paramSign == '政策全称' || value.paramSign == '支持内容' || value.paramSign == '申报条件' || value.paramSign == '申报流程' || value.paramSign == '申报材料' || value.paramSign == '申报时间' || value.paramSign == '受理单位' || value.paramSign == '联系方式' || value.paramSign == '通知链接'" 
+          style="text-align: left;max-width: 100%;overflow: hidden;">
+          <h3 style="color: #d759f0;">{{value.paramSign}}</h3>
+          <p style="line-height: 4.5rem;padding: 1rem;color: #fff;">
+            <pre style="color: #fff;line-height: 4.5rem;">{{value.content}}</pre>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="activityInfo" v-if="showActivityContent">
+      <h3 class="close iconfont icon-close" @click="closeActivityContent()" style="font-size:5rem;color: #fff;margin-right: 2%;"></h3>
+      <div class="activityContent_scroll"> 
+          <h3 style="color: #fff;font-size: 5rem;text-align: center;line-height: 6.5rem;">{{activityData.title}}</h3>
+          <p>
+            <span>举办时间：</span>{{activityData.startTime}}
+          </p>
+          <p><span>举办地点：</span>{{activityData.address}}</p>
+          <p><span>嘉宾：</span>{{activityData.customer}}</p>
+          <p><span>主讲人：</span>{{activityData.speaker}}</p>
+          <p><span>主讲人简介：</span><pre style="color: #fff;line-height: 4.5rem;">{{activityData.speakerInfo}}</pre></p>
+          <p><span>内容简介：</span><pre style="color: #fff;line-height: 4.5rem;">{{activityData.content}}</pre></p>
+      </div>
+    </div>
+    <div class="bigdata_list" v-if="showBigdataList">
+      <h3 class="close iconfont icon-close" @click="closeBigdataList()" style="font-size:5rem;color: #fff;"></h3>
+      <div class="bigdata_scroll">
+        <div class="bigdata_company" v-if="companyList.length>0">
+          <div class="orange bold bigdata_left">{{companyList[0].field}}</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company" v-if="companyList.length == 0">
+          <div class="orange bold bigdata_left">无</div>
+        </div>
+        <!--<div class="bigdata_company">
+          <div class="orange bold bigdata_left">集成电路</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '集成电路'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company">
+          <div class="orange bold bigdata_left">节能环保</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '节能环保'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company">
+          <div class="orange bold bigdata_left">软件和信息服务</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '软件和信息服务'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company">
+          <div class="orange bold bigdata_left">新材料</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '新材料'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company">
+          <div class="orange bold bigdata_left">新一代信息技术</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '新一代信息技术'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company">
+          <div class="orange bold bigdata_left">医药健康</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '医药健康'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>
+        <div class="bigdata_company">
+          <div class="orange bold bigdata_left">智能装备</div>
+          <div class="bigdata_right">
+            <p
+              class="blue"
+              v-for="(value,index) in companyList"
+              @click="bigdataInfo(value.id)"
+              v-if="value.field == '智能装备'">
+              {{value.name}}
+            </p>
+          </div>
+        </div>-->
+      </div>
+    </div>
+
+    <div class="bigdata_info" v-if="showBigdataInfo && companyData">
+      <h3 class="close iconfont icon-close" @click="closeBigdataInfo()" style="font-size:5rem;color: #fff;"></h3>
+      <p style="position: absolute;width: 100%;text-align: center;top: 8.2%;font-size: 4rem;" class="blue">{{companyData.name}}</p>
+      <div style="position: absolute;top: 10%;width: 100%;max-height: 88%;overflow: auto;padding: 5rem;">
+        <h3 class="orange" v-if="companyData.joinDate !== ''">【入园时间】</h3>
+        <p style="color: #fff;line-height: 4.5rem;padding: 1rem;" v-if="companyData.joinDate !== ''">
+          {{companyData.joinDate}}
+        </p>
+        <h3 class="orange" v-if="companyData.intro !== ''">【公司简介】</h3>
+        <p style="color: #fff;line-height: 4.5rem;padding: 1rem;" v-if="companyData.intro !== ''" v-html="companyData.intro">
+
+        </p>
+        <h3 class="orange" v-if="companyData.honor !== ''">【荣誉资质】</h3>
+        <p style="color: #fff;line-height: 4.5rem;padding: 1rem;" v-if="companyData.honor !== ''" v-html="companyData.honor">
+        </p>
+        <h3 class="orange" v-if="companyData.web !== ''">【官方网站】</h3>
+        <p style="color: #fff;line-height: 4.5rem;padding: 1rem;" v-if="companyData.web !== ''">
+          {{companyData.web}}
+        </p>
+      </div>
+    </div>
+
+    <!--图片轮播-->
+    <div class="swiper-container" v-show="showSlide">
+      <div class="swiper-wrapper"  v-show="showSlide">
+        <div class="swiper-slide full notice_bg" v-if="noticeList.length>0" v-for="(value, index) in noticeList">
+          <div class="notice_scroll" style="border: 0;outline: 0;background: rgba(255,255,255,.2);padding: 5%;">
+            <div style="text-align: center;border-radius: 1.5rem;height: 100%;">
+              <h1 style="color: #fff;font-size: 5rem;line-height: 6rem;">{{value.name}}</h1>
+              <p style="line-height: 3.5rem;text-align: left;color: #000000;">
+                <pre style="color: #fff;line-height: 4rem;text-align: left;">{{value.content.playNotice.once.content}}</pre>
+              </p>
+              <p style="text-align: right;line-height: 4rem;color: #fff;">
+                <span v-if="value.content.playNotice.once.people !== '' && value.content.playNotice.once.people !== null">联系人：{{value.content.playNotice.once.people}}</span><br />
+                <span v-if="value.content.playNotice.once.peoplePhone !== '' && value.content.playNotice.once.peoplePhone !== null">联系电话：{{value.content.playNotice.once.peoplePhone}}</span><br />
+                <span v-if="value.content.playNotice.once.company !== '' && value.content.playNotice.once.company !== null">{{value.content.playNotice.once.company}}</span><br />
+              </p>
+            </div>
+          </div>
+        </div> 
+        <div class="swiper-slide full policy_bg" v-if="showPolicy">
+          <div class="policy_scroll">
+            <div class="policy_content" v-if="policyData" v-for="(value,index) in policyData" @click="policyContent(value.id)">
+              <h3 style="color: #fff;">{{value.name}}</h3>
+              <p style="padding-top: 1rem;color: #fff;" v-for="content in value.contentList" v-if="content.paramSign == '截止时间' && content.paramSign != ''">截止时间：{{content.content}}</p>
+              <p style="padding-top: 1rem;color: #fff;" v-for="content in value.contentList" v-if="content.paramSign == '政策支持' && content.paramSign != ''">政策支持：<span style="color: #d759f0;">{{content.content}}</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-slide full activity_bg" v-if="activityList.length > 0">
+          <div class="activity_scroll">
+            <div class="policy_content" v-if="activityList" v-for="(value,index) in activityList" @click="activityContent(value.id)" style="border: solid 1px #38a9dd;background: rgba(43,221,228,.3);">
+              <h3 style="color: #2bdde4;">{{value.name}}</h3>
+              <p style="padding-top: 1rem;color: #fff;">举办时间：{{value.content.playNotice.cycle.startTime}}</p>
+              <p style="padding-top: 1rem;line-height: 3.5rem;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;color: #fff;">举办地点：{{value.content.playNotice.cycle.address}}</p>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-slide full" v-if="showBigdata">
+          <div class="bigdata">
+            <div class="all">
+              <p style="position: absolute;color: #fff;font-size: 5rem;top: 9rem;left: 43rem;letter-spacing: 3rem;"
+                class="bold">{{bigDataInfo.fuhuaqiye}}</p>
+              <p style="position: absolute;top: 16rem;left: 45rem;font-size: 2.6rem;" class="blue">累计孵化企业</p>
+              <div class="all_side" style="top: 5rem;left: 6rem;">
+                <p class="cyan"><span class="cyan bold" style="font-size: 4rem;">{{bigDataInfo.liuxuerenyuan}}</span>人</p>
+                <p class="blue">累计吸引留学人员</p>
+              </div>
+              <div class="all_side" style="top: 15rem;left: 6rem;">
+                <p class="cyan"><span class="cyan bold" style="font-size: 4rem;">{{bigDataInfo.chuangjianqiye}}</span>家</p>
+                <p class="blue">留学人员创建企业</p>
+              </div>
+              <div class="all_side" style="top: 5rem;left: 75rem;">
+                <p class="cyan"><span class="cyan bold" style="font-size: 4rem;">{{bigDataInfo.shangshiqiye}}</span>家</p>
+                <p class="blue">上市挂牌企业</p>
+              </div>
+              <div class="all_side" style="top: 15rem;left: 75rem;">
+                <p class="cyan"><span class="cyan bold" style="font-size: 4rem;">{{bigDataInfo.guapaiqiye}}</span>家</p>
+                <p class="blue">2018四板挂牌企业</p>
+              </div>
+            </div>
+            <div class="companytype">
+              <p style="position: absolute;top: 2.5rem;left: 48rem;color: #fff;">企业类型</p>
+              <div class="companytype_side" style="top: 8rem;left: 10rem;">
+                <p class="blue">新一代信息技术</p>
+                <img src="images/companytype_2.png" @click="bigdataList('新一代信息技术')">
+                <p class="orange"><span>{{bigDataInfo.xinxijishu}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 8rem;left: 28rem;">
+                <p class="blue">集成电路</p>
+                <img src="images/companytype_3.png" @click="bigdataList('集成电路')">
+                <p class="orange"><span>{{bigDataInfo.jichengdianlu}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 8rem;left: 44rem;">
+                <p class="blue">医药健康</p>
+                <img src="images/companytype_4.png" @click="bigdataList('医药健康')">
+                <p class="orange"><span>{{bigDataInfo.yiyaojiankang}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 8rem;left: 61rem;">
+                <p class="blue">智能装备</p>
+                <img src="images/companytype_5.png" @click="bigdataList('智能装备')">
+                <p class="orange"><span>{{bigDataInfo.zhuangbeichanye}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 8rem;left: 78rem;">
+                <p class="blue">节能环保</p>
+                <img src="images/companytype_6.png" @click="bigdataList('节能环保')">
+                <p class="orange"><span>{{bigDataInfo.jienenghuanbao}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 30rem;left: 10rem;">
+                <p class="blue">新能源智能汽车</p>
+                <img src="images/companytype_7.png" @click="bigdataList('新能源智能汽车')">
+                <p class="orange"><span>{{bigDataInfo.zhinengqiche}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 30rem;left: 28rem;">
+                <p class="blue">新材料</p>
+                <img src="images/companytype_8.png" @click="bigdataList('新材料')">
+                <p class="orange"><span>{{bigDataInfo.xincailiao}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 30rem;left: 44rem;">
+                <p class="blue">人工智能</p>
+                <img src="images/companytype_9.png" @click="bigdataList('人工智能')">
+                <p class="orange"><span>{{bigDataInfo.rengongzhineng}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 30rem;left: 61rem;">
+                <p class="blue">软件和信息服务</p>
+                <img src="images/companytype_10.png" @click="bigdataList('软件和信息服务')">
+                <p class="orange"><span>{{bigDataInfo.xinxifuwu}}</span>家</p>
+              </div>
+              <div class="companytype_side" style="top: 30rem;left: 78rem;">
+                <p class="blue">科技服务业</p>
+                <img src="images/companytype_11.png" @click="bigdataList('科技服务业')">
+                <p class="orange"><span>{{bigDataInfo.fuwuye}}</span>家</p>
+              </div>
+            </div>
+            <div class="knowledge">
+              <p style="position: absolute;top: 2.3rem;left: 48rem;color: #fff;">知识产权</p>
+              <div class="knowledge_side" style="top: 13rem;left: 13rem;">
+                <p class="blue">累计申请知识产权</p>
+                <img src="images/knowledge_2.png">
+                <p class="orange"><span>{{bigDataInfo.zhishichanquan}}</span>项</p>
+              </div>
+              <div class="knowledge_side" style="top: 13rem;left: 43rem;">
+                <p class="blue">累计授权</p>
+                <img src="images/knowledge_3.png">
+                <p class="orange"><span>{{bigDataInfo.leijishouquan}}</span>项</p>
+              </div>
+              <div class="knowledge_side" style="top: 13rem;left: 70rem;">
+                <p class="blue">专利授权</p>
+                <img src="images/knowledge_4.png">
+                <p class="orange"><span>{{bigDataInfo.zhuanlishouquan}}</span>项</p>
+              </div>
+            </div>
+            <div class="banking">
+              <p style="position: absolute;top: 2.2rem;left: 48rem;color: #fff;">金融服务</p>
+              <div class="knowledge_side" style="top: 13rem;left: 13rem;">
+                <p class="blue">政府奖励</p>
+                <img src="images/banking_02.png">
+                <p class="orange"><span>{{bigDataInfo.zhengfuzizhu}}</span>万元</p>
+              </div>
+              <div class="knowledge_side" style="top: 13rem;left: 43rem;">
+                <p class="blue">债权融资</p>
+                <img src="images/banking_03.png">
+                <p class="orange"><span>{{bigDataInfo.zhaiquanrongzi}}</span>万元</p>
+              </div>
+              <div class="knowledge_side" style="top: 13rem;left: 70rem;">
+                <p class="blue">股权投资</p>
+                <img src="images/banking_04.png">
+                <p class="orange"><span>{{bigDataInfo.guquantouzi}}</span>万元</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-slide full" v-if="imgPath.length==0">
+          <img src="images/banner5.jpg" />
+        </div>
+        <div class="swiper-slide full" v-if="imgPath.length==0">
+          <img src="images/banner6.jpg" />
+        </div>
+        <div class="swiper-slide full" v-if="imgPath.length==0">
+          <img src="images/banner7.jpg" />
+        </div>
+        <div class="swiper-slide full" v-if="imgPath.length > 0" v-for="(value, index) in imgPath">
+          <img :src="value.url" />
+        </div>
+      </div>
+    </div>
+    <div class="c_bg">
+      <img src="images/center.png" />
+    </div>
+    <div id="siri" style="width: 100%;position: absolute;top: 63%;height: 200px;overflow: hidden;left: 0px;z-index: 13;">
+
+    </div>
+    <!--轮播结束-->
+    <i class="iconfont icon-voice" style="font-size: 8rem!important;position: absolute;top: 50%;right: 5%;z-index: 15;color: #fff;"
+      @click="startRecognize()"></i>
+    <div class="mui-scroll-wrapper" id="chatbox">
+      <div id="" class="mui-scroll">
+        <div class="chatbox_left clearfix">
+          <p>您好,很高兴为您服务</p>
+        </div>
+        <!--<div class="chatbox_right clearfix">
+          <p>奥斯卡进度更快了解来看淀区留学生创业园。2007年10月，国家人事部和北京市人民政府共建单位——中国北京（海淀）留学人员创业园。经过多年的建设，海淀创业园已经拥有三大孵化基地，培育了一批又一批的优秀企业和企业家，得到了党和国家领导人</p>
+        </div>-->
+      </div>
+    </div>
+  </div>
+
+  </body>
+
+</html>
