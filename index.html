@@ -46,6 +46,10 @@
         </div>
       </div>
     </div>
+		
+		<div style="width: 7rem;position: absolute;z-index: 999;;top: 50%;right: 0;" v-if="showSlide">
+			<img style="width: 100%;" src="images/c.png"  @click="StartInteractive()">
+		</div>
 
     <!--政策详情-->
     <div id="policyInfo" v-if="showPolicyInfo">
