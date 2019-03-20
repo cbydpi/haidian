@@ -25,7 +25,7 @@
   <body>
   <div id="app">
     <!--浮动点-->
-    <div id="mov" style="background: rgba(230,230,230,.6);width: 5rem;height: 5rem;border-radius: 50%;position: absolute;z-index: 999;;top: 20%;right: 0;"
+    <div id="mov" style="background: rgba(230,230,230,.6);width: 5rem;height: 5rem;border-radius: 50%;position: absolute;z-index: 999;;top: 55%;right: 0;"
       @touchstart="mouseDown(this,$event)" @touchmove="mouseMove($event)" @touchend="mouseUp($event)" @click="toggleButton()">
       <div style="text-align:center;position: absolute;width: 15rem;line-height: 3rem;background: #fff;border-radius: 15px;right: 5rem;display: none;">
         <div class="inline" @click="beginslide()">
@@ -47,7 +47,7 @@
       </div>
     </div>
 		
-		<div style="width: 7rem;position: absolute;z-index: 999;;top: 50%;right: 0;" v-if="showSlide">
+		<div style="width: 40rem;position: absolute;z-index: 999;;top: 2%;right: 0;" v-if="showSlide">
 			<img style="width: 100%;" src="images/c.png"  @click="StartInteractive()">
 		</div>
 
@@ -369,10 +369,10 @@
         <div class="swiper-slide full" v-if="imgPath.length > 0" v-for="(value, index) in imgPath">
           <img :src="value.url" />
         </div>
-				<div class="swiper-pagination"></div>
-				<div class="swiper-button-prev"></div>
-				<div class="swiper-button-next"></div>
       </div>
+			<div class="swiper-pagination"></div>
+			<div class="swiper-button-prev swiper-button-white"></div>
+			<div class="swiper-button-next swiper-button-white"></div>
     </div>
     <div class="c_bg">
       <img src="images/center.png" />
