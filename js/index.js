@@ -31,6 +31,7 @@ mui.ready(function() {
         objX: null,
         objY: null,
         isDowm: false,
+        isDownc: false,
         datetime: null,
         slidetime: null,
         showPolicyInfo: false,
@@ -610,11 +611,11 @@ mui.ready(function() {
                 vm.startTransform(r.answer);
               } else {
                 $('#chatbox').children('div').append(
-                  '<div class="chatbox_left clearfix"><p>感谢您的咨询, 我会尽快学会的, 为了不耽误您要了解的事情, 您可咨询人工服务台。</p></div>'
+                  '<div class="chatbox_left clearfix"><p>感谢您的咨询,我会尽快学会的, 为了不耽误您要了解的事情, 请联系相关部门。</p></div>'
                 );
                 mui('#chatbox').scroll().reLayout();
                 mui('#chatbox').scroll().scrollToBottom();
-                vm.startTransform('感谢您的咨询, 我会尽快学会的, 为了不耽误您要了解的事情, 您可咨询人工服务台。');
+                vm.startTransform('感谢您的咨询,我会尽快学会的, 为了不耽误您要了解的事情, 请联系相关部门。');
               }
             }
           });
@@ -728,6 +729,33 @@ mui.ready(function() {
             div.style.right = "0px";
             div.style.top = parseInt(this.objY) + parseInt(y) - parseInt(this.mouseY) + "px";
             isDowm = false;
+          }
+        },
+        mouseDownc: function(obj, e) {
+          var div = document.getElementById("people");
+          this.objX = div.offsetLeft;
+          this.objY = div.offsetTop;
+          this.mouseX = e.changedTouches[0].clientX;
+          this.mouseY = e.changedTouches[0].clientY;
+          this.isDowmc = true;
+        },
+        mouseMovec: function(e) {
+          var div = document.getElementById("people");
+          var x = e.changedTouches[0].clientX;
+          var y = e.changedTouches[0].clientY;
+          if (this.isDowmc) {
+            div.style.right = parseInt(this.objX) - parseInt(x) + "px";
+            div.style.top = parseInt(this.objY) + parseInt(y) - parseInt(this.mouseY) + "px";
+          }
+        },
+        mouseUpc: function(e) {
+          if (this.isDowmc) {
+            var x = e.changedTouches[0].clientX;
+            var y = e.changedTouches[0].clientY;
+            var div = document.getElementById("people");
+            div.style.right = "0px";
+            div.style.top = parseInt(this.objY) + parseInt(y) - parseInt(this.mouseY) + "px";
+            isDowmc = false;
           }
         },
         toggleButton: function() {

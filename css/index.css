@@ -218,7 +218,7 @@ pre{
   background-size: cover;
   background-position: 50% 50%;
   background-repeat: repeat;
-  z-index: 998;
+  z-index: 997;
   padding: 5%;
 }
 .activityInfo {
@@ -235,7 +235,7 @@ pre{
   background-size: cover;
   background-position: 50% 50%;
   background-repeat: repeat;
-  z-index: 998;
+  z-index: 997;
   padding: 5%;
 }
 .t {
@@ -397,7 +397,7 @@ h3 {
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 998;
+  z-index: 997;
   background: url(../images/bigdata_list.png);
 }
 
@@ -407,7 +407,7 @@ h3 {
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 999;
+  z-index: 998;
   overflow-y: scroll;
   background: url(../images/bigdata_info.png);
 }
