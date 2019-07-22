@@ -14,6 +14,7 @@
     <script src="js/vue.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/swiper.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/index.js" type="text/javascript" charset="utf-8"></script>
+    <!-- <script src="js/baidu_tts.js" type="text/javascript" charset="utf-8"></script> -->
     <script type="text/javascript" charset="utf-8">
       //去掉loading
       setTimeout(function() {
@@ -58,9 +59,9 @@
         <h3 style="color: #d759f0;">{{policyInfo.name}}</h3>
         <div 
           v-for="(value, index) in policyInfo.contentList" 
-          v-if="value.paramSign == '政策全称' || value.paramSign == '支持内容' || value.paramSign == '申报条件' || value.paramSign == '申报流程' || value.paramSign == '申报材料' || value.paramSign == '申报时间' || value.paramSign == '受理单位' || value.paramSign == '联系方式' || value.paramSign == '通知链接'" 
+          v-if="value.name == '政策全称' || value.name == '支持内容' || value.name == '申报条件' || value.name == '申报流程' || value.name == '申报材料' || value.name == '申报时间' || value.name == '受理单位' || value.name == '联系方式' || value.name == '通知链接'" 
           style="text-align: left;max-width: 100%;overflow: hidden;">
-          <h3 style="color: #d759f0;">{{value.paramSign}}</h3>
+          <h3 style="color: #d759f0;">{{value.name}}</h3>
           <p style="line-height: 4.5rem;padding: 1rem;color: #fff;">
             <pre style="color: #fff;line-height: 4.5rem;">{{value.content}}</pre>
           </p>
@@ -229,8 +230,8 @@
           <div class="policy_scroll">
             <div class="policy_content" v-if="policyData" v-for="(value,index) in policyData" @click="policyContent(value.id)">
               <h3 style="color: #fff;">{{value.name}}</h3>
-              <p style="padding-top: 1rem;color: #fff;" v-for="content in value.contentList" v-if="content.paramSign == '截止时间' && content.paramSign != ''">截止时间：{{content.content}}</p>
-              <p style="padding-top: 1rem;color: #fff;" v-for="content in value.contentList" v-if="content.paramSign == '政策支持' && content.paramSign != ''">政策支持：<span style="color: #d759f0;">{{content.content}}</span></p>
+              <p style="padding-top: 1rem;color: #fff;" v-for="content in value.contentList" v-if="content.name == '截止时间' && content.name != ''">截止时间：{{content.content}}</p>
+              <p style="padding-top: 1rem;color: #fff;" v-for="content in value.contentList" v-if="content.name == '政策支持' && content.name != ''">政策支持：<span style="color: #d759f0;">{{content.content}}</span></p>
             </div>
           </div>
         </div>

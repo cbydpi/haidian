@@ -1,7 +1,7 @@
 {
     "@platforms" : [ "android", "iPhone", "iPad" ],
     "id" : "H570D521B", /*应用的标识，创建应用时自动生成，勿手动修改*/
-    "name" : "海淀园区", /*应用名称，程序桌面图标名称*/
+    "name" : "园区", /*应用名称，程序桌面图标名称*/
     "version" : {
         "name" : "1.0.0", /*应用版本名称*/
         "code" : "83"
@@ -171,7 +171,11 @@
             },
             "plugins" : {
                 "speech" : {
-                    "ifly" : {}
+                    "baidu" : {
+                        "appid" : "10665327",
+                        "apikey" : "cHVdqrOejw79Dvk15RtUxQlu",
+                        "secretkey" : "067d8271210da99d47a3012bed457764"
+                    }
                 }
             }
         }

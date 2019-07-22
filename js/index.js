@@ -17,6 +17,128 @@ mui.ready(function() {
       return str
     }
 
+    /**
+     * 浏览器调用语音合成接口
+     * @param {Object} param 百度语音合成接口参数
+     * 请参考 https://ai.baidu.com/docs#/TTS-API/41ac79a6
+     * @param {Object} options 跨域调用api参数
+     *           timeout {number} 超时时间 默认不设置为60秒
+     *           volume {number} audio控件音量，范围 0-1
+     *           hidden {boolean} 是否隐藏audio控件
+     *           autoDestory {boolean} 播放音频完毕后是否自动删除控件
+     *           onInit {Function} 创建完audio控件后调用
+     *           onSuccess {Function} 远程语音合成完成，并且返回音频文件后调用
+     *           onError {Function}  远程语音合成完成，并且返回错误字符串后调用
+     *           onTimeout {Function} 超时后调用，默认超时时间为60秒
+     */
+    var audio = null
+
+    function btts(param, options) {
+      var url = 'http://tsn.baidu.com/text2audio';
+      var opt = options || {};
+      var p = param || {};
+
+      // 如果浏览器支持，可以设置autoplay，但是不能兼容所有浏览器
+      audio = document.createElement('audio');
+      if (opt.autoplay) {
+        audio.setAttribute('autoplay', 'autoplay');
+      }
+
+      // 隐藏控制栏
+      if (!opt.hidden) {
+        audio.setAttribute('controls', 'controls');
+      } else {
+        audio.style.display = 'none';
+      }
+
+      // 设置音量
+      if (typeof opt.volume !== 'undefined') {
+        audio.volume = opt.volume;
+      }
+
+      // 调用onInit回调
+      isFunction(opt.onInit) && opt.onInit(audio);
+
+      // 默认超时时间60秒
+      var DEFAULT_TIMEOUT = 60000;
+      var timeout = opt.timeout || DEFAULT_TIMEOUT;
+
+      // 创建XMLHttpRequest对象
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+
+      // 创建form参数
+      var data = {};
+      for (var p in param) {
+        data[p] = param[p]
+      }
+
+      // 赋值预定义参数
+      data.cuid = data.cuid || data.tok;
+      data.ctp = 1;
+      data.lan = data.lan || 'zh';
+
+      // 序列化参数列表
+      var fd = [];
+      for (var k in data) {
+        fd.push(k + '=' + encodeURIComponent(data[k]));
+      }
+
+      // 用来处理blob数据
+      var frd = new FileReader();
+      xhr.responseType = 'blob';
+      xhr.send(fd.join('&'));
+
+      // 用timeout可以更兼容的处理兼容超时
+      var timer = setTimeout(function() {
+        xhr.abort();
+        isFunction(opt.onTimeout) && opt.onTimeout();
+      }, timeout);
+
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+          clearTimeout(timer);
+          if (xhr.status == 200) {
+            if (xhr.response.type === 'audio/mp3') {
+              vm.SW.start()
+              console.log(document.body)
+              // 在body元素下apppend音频控件
+              document.body.appendChild(audio);
+
+              audio.setAttribute('src', URL.createObjectURL(xhr.response));
+
+              // autoDestory设置则播放完后移除audio的dom对象
+              if (opt.autoDestory) {
+                audio.onended = function() {
+                  vm.startRecognize();
+                  document.body.removeChild(audio);
+                }
+              }
+
+              isFunction(opt.onSuccess) && opt.onSuccess(audio);
+            }
+
+            // 用来处理错误
+            if (xhr.response.type === 'application/json') {
+              frd.onload = function() {
+                var text = frd.result;
+                isFunction(opt.onError) && opt.onError(text);
+              };
+              frd.readAsText(xhr.response);
+            }
+          }
+        }
+      }
+
+      // 判断是否是函数
+      function isFunction(obj) {
+        if (Object.prototype.toString.call(obj) === '[object Function]') {
+          return true;
+        }
+        return false;
+      }
+    }
+
     var vm = new Vue({
       el: '#app',
       data: {
@@ -57,11 +179,13 @@ mui.ready(function() {
         updateNum: '0',
         imgPath: [],
         activityName: '',
-        bigDataInfo: {}
+        bigDataInfo: {},
+        token: ''
       },
       mounted: function() {
         var self = this
-
+        
+        self.getToken()
         if (window.localStorage.getItem('appData')) {
           self.appData = JSON.parse(window.localStorage.getItem('appData'))
           self.playNum = self.appData.batchNum
@@ -115,6 +239,7 @@ mui.ready(function() {
         self.slidetime = setInterval(function() {
           self.slidertime = self.slidertime + 1;
           if (self.slidertime == 60) {
+            console.log(332)
             self.beginslide();
           }
         }, 1000)
@@ -224,6 +349,21 @@ mui.ready(function() {
 
       },
       methods: {
+        getToken: function() {
+          var self = this
+          $.ajax({
+            type: "get",
+            url: this.baseURL + "wx/baidu/token",
+            async: false,
+            success: function(data) {
+              console.log(data)
+              if (data.code === 0) {
+                self.token = data.access_token
+              }
+            },
+            error: function(e) {}
+          });
+        },
         getBigdata: function() {
           var self = this
           $.ajax({
@@ -255,6 +395,31 @@ mui.ready(function() {
                   if (self.playNum == self.updateNum) {
                     if (data.bigData.show == 0) {
                       self.showBigdata = false
+                    } else {
+                      self.showBigdata = true
+                      if (self.mySwiper) {
+
+                        self.mySwiper.destroy();
+                      }
+                      self.mySwiper = new Swiper('.swiper-container', {
+                        loop: true,
+                        observer: true,
+                        observeSlideChildren: true,
+                        autoplay: {
+                          delay: self.delayTime,
+                          disableOnInteraction: false
+                        },
+                        pagination: {
+                          el: '.swiper-pagination',
+                        },
+                        navigation: {
+                          nextEl: '.swiper-button-next',
+                          prevEl: '.swiper-button-prev',
+                        },
+                        onSlideChangeEnd: function(swiper) {
+
+                        }
+                      })
                     }
                     self.imgPath = []
                     self.activityList = []
@@ -296,13 +461,13 @@ mui.ready(function() {
                           delay: self.delayTime,
                           disableOnInteraction: false
                         },
-						pagination: {
-						  el: '.swiper-pagination',
-						},
-						navigation: {
-						  nextEl: '.swiper-button-next',
-						  prevEl: '.swiper-button-prev',
-						},
+                        pagination: {
+                          el: '.swiper-pagination',
+                        },
+                        navigation: {
+                          nextEl: '.swiper-button-next',
+                          prevEl: '.swiper-button-prev',
+                        },
                         onSlideChangeEnd: function(swiper) {
 
                         }
@@ -351,13 +516,13 @@ mui.ready(function() {
                   delay: self.delayTime,
                   disableOnInteraction: false
                 },
-				pagination: {
-				  el: '.swiper-pagination',
-				},
-				navigation: {
-				  nextEl: '.swiper-button-next',
-				  prevEl: '.swiper-button-prev',
-				},
+                pagination: {
+                  el: '.swiper-pagination',
+                },
+                navigation: {
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+                },
                 onSlideChangeEnd: function(swiper) {
 
                 }
@@ -512,56 +677,83 @@ mui.ready(function() {
         // 语音合成
         startTransform: function(transformword) {
           vm.slidertime = 0;
-          var receiver;
+          var audio1 = btts({
+            tex: transformword,
+            tok: vm.token,
+            spd: 6,
+            pit: 5,
+            vol: 15,
+            per: 0
+          }, {
+            volume: 0.3,
+            autoDestory: true,
+            autoplay: true,
+            timeout: 10000,
+            hidden: true,
+            onInit: function(htmlAudioElement) {
 
-          receiver = plus.android.implements('com.iflytek.cloud.SynthesizerListener', {
-            onEvent: function(arg0, arg1, arg2, arg3) {
-
             },
-            onSpeakBegin: function() {
-              vm.slidertime = 0;
+            onSuccess: function(htmlAudioElement) {},
+            onError: function(text) {
+              alert(text)
             },
-            onSpeakPaused: function() {
-              vm.slidertime = 0;
-            },
-            onSpeakResumed: function() {
-              vm.slidertime = 0;
-            },
-            onBufferProgress: function(percent, beginPos, endPos, info) {
-              vm.slidertime = 0;
-            },
-            onSpeakProgress: function(percent, beginPos, endPos) {
-              vm.slidertime = 0;
-              // 合成进度
-            },
-            onCompleted: function(error) {
-              vm.slidertime = 0;
-
-              if (transformword.indexOf('结束') != -1 || transformword.indexOf('再见') != -1 ||
-                transformword.indexOf('拜拜') != -1 || transformword.indexOf('没问题') != -1) {
-                return;
-              }
-              vm.SW.stop();
-              vm.startRecognize();
+            onTimeout: function() {
+              alert('timeout')
             }
           });
-
-          var main = plus.android.runtimeMainActivity();
-          var SpeechUtility = plus.android.importClass('com.iflytek.cloud.SpeechUtility');
-          SpeechUtility.createUtility(main, "appid=5a6ebba2");
-          var SynthesizerPlayer = plus.android.importClass('com.iflytek.cloud.SpeechSynthesizer');
-          this.play = SynthesizerPlayer.createSynthesizer(main, null);
-          this.play.startSpeaking(transformword, receiver);
-          vm.SW.start();
+          //           var receiver;
+          // 
+          //           receiver = plus.android.implements('com.iflytek.cloud.SynthesizerListener', {
+          //             onEvent: function(arg0, arg1, arg2, arg3) {
+          // 
+          //             },
+          //             onSpeakBegin: function() {
+          //               vm.slidertime = 0;
+          //             },
+          //             onSpeakPaused: function() {
+          //               vm.slidertime = 0;
+          //             },
+          //             onSpeakResumed: function() {
+          //               vm.slidertime = 0;
+          //             },
+          //             onBufferProgress: function(percent, beginPos, endPos, info) {
+          //               vm.slidertime = 0;
+          //             },
+          //             onSpeakProgress: function(percent, beginPos, endPos) {
+          //               vm.slidertime = 0;
+          //               // 合成进度
+          //             },
+          //             onCompleted: function(error) {
+          //               vm.slidertime = 0;
+          // 
+          //               if (transformword.indexOf('结束') != -1 || transformword.indexOf('再见') != -1 ||
+          //                 transformword.indexOf('拜拜') != -1 || transformword.indexOf('没问题') != -1) {
+          //                 return;
+          //               }
+          //               vm.SW.stop();
+          //               vm.startRecognize();
+          //             }
+          //           });
+          // 
+          //           var main = plus.android.runtimeMainActivity();
+          //           var SpeechUtility = plus.android.importClass('com.iflytek.cloud.SpeechUtility');
+          //           SpeechUtility.createUtility(main, "appid=5a6ebba2");
+          //           var SynthesizerPlayer = plus.android.importClass('com.iflytek.cloud.SpeechSynthesizer');
+          //           this.play = SynthesizerPlayer.createSynthesizer(main, null);
+          //           this.play.startSpeaking(transformword, receiver);
+          //           vm.SW.start();
         },
         // 语音识别
         startRecognize: function() {
+          console.log(audio)
+          audio.pause();
+          vm.SW.stop();
           if (vm.play != null) {
             vm.play.pauseSpeaking(); // 暂停播放
-            vm.SW.stop();
           }
           var options = {};
-          options.engine = 'iFly';
+          // options.engine = 'iFly';
+          options.engine = 'baidu';
           //超时时间
           // options.timeout=5000;
           options.userInterface = true;
@@ -596,7 +788,7 @@ mui.ready(function() {
           }
           $.ajax({
             type: "post",
-            url: "http://wx.ofaai.com:8383/nature/wx/smart",
+            url: vm.baseURL + "wx/smart",
             async: true,
             data: JSON.stringify(data),
             dataType: 'json',
@@ -628,9 +820,13 @@ mui.ready(function() {
           this.showBigdataList = false
           this.showPolicyInfo = false
           this.showActivityContent = false
+          if (audio) {
+            audio.pause();
+
+            this.SW.stop();
+          }
           if (this.play != null) {
             this.play.pauseSpeaking(); // 暂停播放
-            this.SW.stop();
           }
           Vue.nextTick(function() {
             if (self.mySwiper == null) {
@@ -642,13 +838,13 @@ mui.ready(function() {
                   delay: self.delayTime,
                   disableOnInteraction: false
                 },
-				pagination: {
-				  el: '.swiper-pagination',
-				},
-				navigation: {
-				  nextEl: '.swiper-button-next',
-				  prevEl: '.swiper-button-prev',
-				},
+                pagination: {
+                  el: '.swiper-pagination',
+                },
+                navigation: {
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+                },
                 onSlideChangeEnd: function(swiper) {
 
                 }
@@ -663,13 +859,13 @@ mui.ready(function() {
                   delay: self.delayTime,
                   disableOnInteraction: false
                 },
-				pagination: {
-				  el: '.swiper-pagination',
-				},
-				navigation: {
-				  nextEl: '.swiper-button-next',
-				  prevEl: '.swiper-button-prev',
-				},
+                pagination: {
+                  el: '.swiper-pagination',
+                },
+                navigation: {
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+                },
                 onSlideChangeEnd: function(swiper) {
 
                 }
